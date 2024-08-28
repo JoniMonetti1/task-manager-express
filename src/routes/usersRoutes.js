@@ -11,6 +11,6 @@ router.post('/', usersController.ingresar);
 router.route('/:id')
     .get(usersController.consultarUno)
     .put(usersController.modificar)
-
+    .delete(usersController.borrar)
 
 module.exports = router;
