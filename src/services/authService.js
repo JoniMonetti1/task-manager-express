@@ -1,6 +1,5 @@
 const argon2 = require('argon2');
 
-// Función para hashear la contraseña
 async function hashPassword(password) {
     try {
         const hash = await argon2.hash(password);
@@ -10,7 +9,6 @@ async function hashPassword(password) {
     }
 }
 
-// Función para verificar la contraseña
 async function verifyPassword(hash, plainPassword) {
     try {
         const match = await argon2.verify(hash, plainPassword);
