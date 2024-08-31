@@ -1,16 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const usersController = require('../controllers/usersController');
+const authenticateToken = require('../middlewares/authMiddleware');
 
-//Rutas estaticas
-router.get('/', usersController.consultar);
+// Rutas públicas
+router.post('/login', usersController.authentication);
+router.post('/', usersController.ingresar);  // Registro de usuario
 
-router.post('/', usersController.ingresar);
+// Rutas protegidas
+router.get('/', authenticateToken, usersController.consultar);
 
-//Rutas dinamicas
 router.route('/:id')
-    .get(usersController.consultarUno)
-    .put(usersController.modificar)
-    .delete(usersController.borrar)
+    .get(authenticateToken, usersController.consultarUno)
+    .put(authenticateToken, usersController.modificar)
+    .delete(authenticateToken, usersController.borrar);
 
 module.exports = router;

@@ -9,6 +9,7 @@ const PORT = 3000;
 //middlewares
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({encoded: true}));
 
 //Route users
 app.use('/users', usersRoutes);

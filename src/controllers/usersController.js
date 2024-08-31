@@ -1,5 +1,7 @@
 const db = require('../database/dbConnection');
 const { hashPassword, verifyPassword } = require('../services/authService');
+const jwt = require('jsonwebtoken');
+require('dotenv').config();
 
 class UserController {
     constructor() {}
@@ -137,6 +139,52 @@ class UserController {
                 WHERE id_user = ?;`
             , [id]);
             return res.status(200).send(`User with id ${id} was deleted`)
+        } catch (error) {
+            console.log(error);
+            res.status(500).send(error.message);
+        }
+    }
+
+    authentication = async (req, res) => {
+        const {username, password} = req.body;
+        if (!username ||!password) {
+            return res.status(400).send('Missing required fields');
+        }
+    
+        try {
+            const[user] = await db.promise().query(
+                `SELECT
+                    id_user, password
+                FROM users
+                WHERE username = ?;`,
+                [username]
+            );
+    
+            if (user.length === 0) {
+                return res.status(401).send('Invalid username or password');
+            }
+    
+            const isValidPassword = await verifyPassword(user[0].password, password);
+            if (!isValidPassword) {
+                return res.status(401).send('Invalid username or password');
+            }
+    
+            // Si la contraseña es válida pero no está hasheada, actualizarla
+            if (!user[0].password.startsWith('$')) {
+                const hashedPassword = await hashPassword(password);
+                await db.promise().query(
+                    `UPDATE users SET password = ? WHERE id_user = ?;`,
+                    [hashedPassword, user[0].id_user]
+                );
+            }
+    
+            const token = jwt.sign(
+                {id_user: user[0].id_user, username: username},
+                process.env.JWT_SECRET,
+                {expiresIn: '12h'}
+            )
+    
+            return res.status(200).json({token});
         } catch (error) {
             console.log(error);
             res.status(500).send(error.message);
